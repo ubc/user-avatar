@@ -3,7 +3,7 @@
 Plugin Name: User Avatar
 Plugin URI: http://wordpress.org/extend/plugins/user-avatar/
 Description: Allows users to associate photos with their accounts by accessing their "Your Profile" page that default as Gravatar or WordPress Default image (from Discussion Page).
-Version: 1.4.11
+Version: 1.4.2
 Author: Enej Bajgoric / Gagan Sandhu / CTLT DEV
 
 

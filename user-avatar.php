@@ -218,11 +218,11 @@ function user_avatar_add_photo_step1($uid)
 	?>
 	<p id="step1-image" >
 	<?php
-	echo user_avatar_get_avatar( $uid , 150);
+	echo user_avatar_get_avatar( (int) $uid , 150);
 	?>
 	</p>
 	<div id="user-avatar-step1">
-	<form enctype="multipart/form-data" id="uploadForm" method="POST" action="<?php echo admin_url('admin-ajax.php'); ?>?action=user_avatar_add_photo&step=2&uid=<?php echo $uid; ?>" >
+	<form enctype="multipart/form-data" id="uploadForm" method="POST" action="<?php echo admin_url('admin-ajax.php'); ?>?action=user_avatar_add_photo&step=2&uid=<?php echo (int) $uid; ?>" >
 		<label for="upload"><?php _e('Choose an image from your computer:','user-avatar'); ?></label><br /><input type="file" id="upload" name="uploadedfile" />
 
 		<?php wp_nonce_field('user-avatar') ?>
@@ -290,12 +290,12 @@ function user_avatar_add_photo_step2($uid)
 		<h4><?php _e('Choose the part of the image you want to use as your profile image.','user-avatar'); ?> <input type="submit" class="button" id="user-avatar-crop-button" value="<?php esc_attr_e('Crop Image','user-avatar'); ?>" /></h4>
 
 		<div id="testWrap">
-		<img src="<?php echo $url; ?>" id="upload" width="<?php echo esc_attr($width); ?>" height="<?php echo esc_attr($height); ?>" />
+		<img src="<?php echo esc_url( $url ); ?>" id="upload" width="<?php echo esc_attr($width); ?>" height="<?php echo esc_attr($height); ?>" />
 		</div>
 		<div id="user-avatar-preview">
 		<h4>Preview</h4>
 		<div id="preview" style="width: <?php echo USER_AVATAR_FULL_WIDTH; ?>px; height: <?php echo USER_AVATAR_FULL_HEIGHT; ?>px; overflow: hidden;">
-		<img src="<?php echo esc_url_raw($url); ?>" width="<?php echo esc_attr($width); ?>" height="<?php echo $height; ?>">
+		<img src="<?php echo esc_url($url); ?>" width="<?php echo esc_attr($width); ?>" height="<?php echo esc_attr( $height ); ?>">
 		</div>
 		<p class="submit" >
 		<input type="hidden" name="x1" id="x1" value="0" />
@@ -415,9 +415,9 @@ function user_avatar_add_photo_step3($uid)
 		mkdir(USER_AVATAR_UPLOAD_PATH."{$uid}/");
 
 	// update the files
-	$cropped_full = wp_crop_image( $original_file, $_POST['x1'], $_POST['y1'], $_POST['width'], $_POST['height'], USER_AVATAR_FULL_WIDTH, USER_AVATAR_FULL_HEIGHT, false, $cropped_full );
+	$cropped_full = wp_crop_image( $original_file, (double) $_POST['x1'], (double) $_POST['y1'], (double) $_POST['width'], (double) $_POST['height'], USER_AVATAR_FULL_WIDTH, USER_AVATAR_FULL_HEIGHT, false, $cropped_full );
 
-	$cropped_thumb = wp_crop_image( $original_file, $_POST['x1'], $_POST['y1'], $_POST['width'], $_POST['height'], USER_AVATAR_THUMB_WIDTH, USER_AVATAR_THUMB_HEIGHT, false, $cropped_thumb );
+	$cropped_thumb = wp_crop_image( $original_file, (double) $_POST['x1'], (double) $_POST['y1'], (double) $_POST['width'], (double) $_POST['height'], USER_AVATAR_THUMB_WIDTH, USER_AVATAR_THUMB_HEIGHT, false, $cropped_thumb );
 
 	/* Remove the original */
 	@unlink( $original_file );
@@ -632,8 +632,8 @@ function user_avatar_delete(){
 			if(is_numeric($user_id))
 				$user_id = "?user_id=".$user_id;
 
-			user_avatar_delete_files($_GET['u']);
-			wp_redirect(get_option('siteurl') . '/wp-admin/'.$pagenow.$user_id);
+			user_avatar_delete_files((int) $_GET['u']);
+			wp_redirect(get_option('siteurl') . '/wp-admin/'. $pagenow. (int)$user_id);
 
 		}
 }
@@ -656,15 +656,15 @@ function user_avatar_form($profile)
 	<div id="user-avatar-display" class="submitbox" >
 	<h3 ><?php _e('Picture','user-avatar'); ?></h3>
 	<p id="user-avatar-display-image"><?php echo user_avatar_get_avatar($profile->ID, 150); ?></p>
-	<a id="user-avatar-link" class="button-primary thickbox" href="<?php echo admin_url('admin-ajax.php'); ?>?action=user_avatar_add_photo&step=1&uid=<?php echo $profile->ID; ?>&TB_iframe=true&width=720&height=450" title="<?php _e('Upload and Crop an Image to be Displayed','user-avatar'); ?>" ><?php _e('Update Picture','user-avatar'); ?></a>
+	<a id="user-avatar-link" class="button-primary thickbox" href="<?php echo admin_url('admin-ajax.php'); ?>?action=user_avatar_add_photo&step=1&uid=<?php echo (int)$profile->ID; ?>&TB_iframe=true&width=720&height=450" title="<?php _e('Upload and Crop an Image to be Displayed','user-avatar'); ?>" ><?php _e('Update Picture','user-avatar'); ?></a>
 
 	<?php
 		// Remove the User-Avatar button if there is no uploaded image
 
 		if(isset($_GET['user_id'])):
-			$remove_url = admin_url('user-edit.php')."?user_id=".$_GET['user_id']."&delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".$profile->ID;
+			$remove_url = admin_url('user-edit.php')."?user_id=".(int)$_GET['user_id']."&delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".(int)$profile->ID;
 		else:
-			$remove_url = admin_url('profile.php')."?delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".$profile->ID;
+			$remove_url = admin_url('profile.php')."?delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".(int)$profile->ID;
 
 		endif;
 		if ( user_avatar_avatar_exists($profile->ID) ):?>
@@ -679,7 +679,7 @@ function user_avatar_form($profile)
 	}
 	function add_remove_avatar_link(){
 		if(!jQuery("#user-avatar-remove").is('a')){
-			jQuery('#user-avatar-link').after(" <a href='<?php echo $remove_url; ?>' class='submitdelete'  id='user-avatar-remove' ><?php _e('Remove','user-avatar'); ?></a>")
+			jQuery('#user-avatar-link').after(" <a href='<?php echo esc_url( $remove_url ); ?>' class='submitdelete'  id='user-avatar-remove' ><?php _e('Remove','user-avatar'); ?></a>")
 		}
 
 
@@ -747,14 +747,14 @@ function user_avatar_get_avatar($id,$width) {
 
 		if( user_avatar_avatar_exists($id) ):
 
-			$user_avatar = user_avatar_fetch_avatar( array( 'item_id' => $id, 'width' => $width, 'height' => $width, 'alt' => '' ) );
+			$user_avatar = user_avatar_fetch_avatar( array( 'item_id' => (int)$id, 'width' => esc_attr( $width ), 'height' => esc_attr( $width ), 'alt' => '' ) );
 			if($user_avatar):
 				return $user_avatar;
 			else:
-				return '<img src="'.USER_AVATAR_DEFAULT.'" width="'.$width.'" height="'.$width.'" class="avatar" />';
+				return '<img src="'.USER_AVATAR_DEFAULT.'" width="'.esc_attr( $width ).'" height="'.esc_attr( $width ).'" class="avatar" />';
 			endif;
 		else:
-			return '<img src="'.USER_AVATAR_DEFAULT.'" width="'.$width.'" height="'.$width.'" class="avatar" />';
+			return '<img src="'.USER_AVATAR_DEFAULT.'" width="'.esc_attr( $width ).'" height="'.esc_attr( $width ).'" class="avatar" />';
 		endif;
 	else:
 		return get_avatar($id,$width);

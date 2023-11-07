@@ -144,7 +144,8 @@ function user_avatar_add_photo() {
 
 	if(($_GET['uid'] == $current_user->ID || current_user_can('edit_users')) &&  is_numeric($_GET['uid']))
 	{
-		$uid = $_GET['uid'];
+		$uid = absint( $_GET['uid'] );
+		
 	?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" <?php do_action('admin_xml_ns'); ?> <?php language_attributes(); ?>>
 <head>
@@ -161,7 +162,7 @@ var userSettings = {
 	ajaxurl = '<?php echo admin_url('admin-ajax.php'); ?>',
 	pagenow = '<?php echo $current_screen->id; ?>',
 	typenow = '<?php if ( isset($current_screen->post_type) ) echo $current_screen->post_type; ?>',
-	adminpage = '<?php echo $admin_body_class; ?>',
+	adminpage = '<?php echo esc_attr( $admin_body_class ); ?>',
 	thousandsSeparator = '<?php echo addslashes( $wp_locale->number_format['thousands_sep'] ); ?>',
 	decimalPoint = '<?php echo addslashes( $wp_locale->number_format['decimal_point'] ); ?>',
 	isRtl = <?php echo (int) is_rtl(); ?>;
@@ -178,7 +179,8 @@ var userSettings = {
 </head>
 <body>
 <?php
-	switch($_GET['step'])
+	$step = absint( $_GET['step'] );
+	switch($step)
 	{
 		case 1:
 			user_avatar_add_photo_step1($uid);
@@ -218,11 +220,11 @@ function user_avatar_add_photo_step1($uid)
 	?>
 	<p id="step1-image" >
 	<?php
-	echo user_avatar_get_avatar( (int) $uid , 150);
+	echo user_avatar_get_avatar( absint( $uid ) , 150);
 	?>
 	</p>
 	<div id="user-avatar-step1">
-	<form enctype="multipart/form-data" id="uploadForm" method="POST" action="<?php echo admin_url('admin-ajax.php'); ?>?action=user_avatar_add_photo&step=2&uid=<?php echo (int) $uid; ?>" >
+	<form enctype="multipart/form-data" id="uploadForm" method="POST" action="<?php echo admin_url('admin-ajax.php'); ?>?action=user_avatar_add_photo&step=2&uid=<?php echo absint( $uid ); ?>" >
 		<label for="upload"><?php _e('Choose an image from your computer:','user-avatar'); ?></label><br /><input type="file" id="upload" name="uploadedfile" />
 
 		<?php wp_nonce_field('user-avatar') ?>
@@ -367,8 +369,8 @@ function user_avatar_add_photo_step2($uid)
 			    var scaleY = <?php echo USER_AVATAR_FULL_HEIGHT; ?> / c.height;
 
 			    jQuery('#preview img').css({
-			        width: Math.round(scaleX * <?php echo $width; ?>),
-			        height: Math.round(scaleY * <?php echo $height; ?>),
+			        width: Math.round(scaleX * <?php echo floatval( $width ); ?>),
+			        height: Math.round(scaleY * <?php echo floatval( $height ); ?>),
 			        marginLeft: -Math.round(scaleX * c.x1),
 			        marginTop: -Math.round(scaleY * c.y1)
 			    });
@@ -389,13 +391,17 @@ function user_avatar_add_photo_step2($uid)
  */
 function user_avatar_add_photo_step3($uid)
 {
+	$oitar  = floatval( $_POST['oitar'] );
+	$x1     = floatval( $_POST['x1'] );
+	$y1     = floatval( $_POST['y1'] );
+	$width  = floatval( $_POST['width'] );
+	$height = floatval( $_POST['height'] );
 
-
-	if ( $_POST['oitar'] > 1 ) {
-		$_POST['x1'] = $_POST['x1'] * $_POST['oitar'];
-		$_POST['y1'] = $_POST['y1'] * $_POST['oitar'];
-		$_POST['width'] = $_POST['width'] * $_POST['oitar'];
-		$_POST['height'] = $_POST['height'] * $_POST['oitar'];
+	if ( $oitar > 1 ) {
+		$x1 = $x1 * $oitar;
+		$y1 = $y1 * $oitar;
+		$width = $width * $oitar;
+		$height = $height * $oitar;
 	}
 
 	$original_file = get_transient( 'avatar_file_'.$uid );
@@ -415,9 +421,9 @@ function user_avatar_add_photo_step3($uid)
 		mkdir(USER_AVATAR_UPLOAD_PATH."{$uid}/");
 
 	// update the files
-	$cropped_full = wp_crop_image( $original_file, (double) $_POST['x1'], (double) $_POST['y1'], (double) $_POST['width'], (double) $_POST['height'], USER_AVATAR_FULL_WIDTH, USER_AVATAR_FULL_HEIGHT, false, $cropped_full );
+	$cropped_full = wp_crop_image( $original_file, $x1, $y1, $width, $height, USER_AVATAR_FULL_WIDTH, USER_AVATAR_FULL_HEIGHT, false, $cropped_full );
 
-	$cropped_thumb = wp_crop_image( $original_file, (double) $_POST['x1'], (double) $_POST['y1'], (double) $_POST['width'], (double) $_POST['height'], USER_AVATAR_THUMB_WIDTH, USER_AVATAR_THUMB_HEIGHT, false, $cropped_thumb );
+	$cropped_thumb = wp_crop_image( $original_file, $x1, $y1, $width, $height, USER_AVATAR_THUMB_WIDTH, USER_AVATAR_THUMB_HEIGHT, false, $cropped_thumb );
 
 	/* Remove the original */
 	@unlink( $original_file );
@@ -579,13 +585,13 @@ function user_avatar_fetch_avatar( $args = '' ) {
 	if ( $width )
 		$html_width = " width=\"".esc_attr($width)."\"";
 	else
-		$html_width = ( 'thumb' == $type ) ? ' width="' . esc_attr(USER_AVATAR_THUMB_WIDTH) . '"' : ' width="' . esc_attr(USER_AVATAR_FULL_WIDTH) . '"';
+		$html_width = ( 'thumb' == $type ) ? ' width="' . USER_AVATAR_THUMB_WIDTH . '"' : ' width="' . USER_AVATAR_FULL_WIDTH . '"';
 
 	// Set avatar height
 	if ( $height )
 		$html_height = " height=\"".esc_attr($height)."\"";
 	else
-		$html_height = ( 'thumb' == $type ) ? ' height="' . esc_attr(USER_AVATAR_THUMB_HEIGHT) . '"' : ' height="' . esc_attr(USER_AVATAR_FULL_HEIGHT) . '"';
+		$html_height = ( 'thumb' == $type ) ? ' height="' . USER_AVATAR_THUMB_HEIGHT . '"' : ' height="' . USER_AVATAR_FULL_HEIGHT . '"';
 
 
 
@@ -606,7 +612,7 @@ function user_avatar_fetch_avatar( $args = '' ) {
 			return '<img src="' . esc_url($avatar_url) . '" alt="' . esc_attr($alt) . '" class="' . esc_attr($class) . '"' . $css_id . $html_width . $html_height . ' />';
 		// ...or only the URL
 		} else {
-			return  $avatar_url ;
+			return  esc_url( $avatar_url ) ;
 		}
 	else:
 		return false;
@@ -625,6 +631,8 @@ function user_avatar_delete(){
 
 		$current_user = wp_get_current_user();
 
+		$user_id = absint( $_GET['user_id'] );
+
 		// If user clicks the remove avatar button, in URL deleter_avatar=true
 		if( isset($_GET['delete_avatar']) && wp_verify_nonce($_GET['_nononce'], 'user_avatar') && ( $_GET['u'] == $current_user->id || current_user_can('edit_users')) )
 		{
@@ -633,7 +641,7 @@ function user_avatar_delete(){
 				$user_id = "?user_id=".$user_id;
 
 			user_avatar_delete_files((int) $_GET['u']);
-			wp_redirect(get_option('siteurl') . '/wp-admin/'. $pagenow. (int)$user_id);
+			wp_redirect(get_option('siteurl') . '/wp-admin/'. $pagenow. $user_id);
 
 		}
 }
@@ -648,6 +656,8 @@ function user_avatar_form($profile)
 {
 	global $current_user;
 
+	$user_id = absint( $_GET['user_id'] );
+
 	// Check if it is current user or super admin role
 	if( $profile->ID == $current_user->ID || current_user_can('edit_user', $current_user->ID) || is_super_admin($current_user->ID) )
 	{
@@ -656,15 +666,15 @@ function user_avatar_form($profile)
 	<div id="user-avatar-display" class="submitbox" >
 	<h3 ><?php _e('Picture','user-avatar'); ?></h3>
 	<p id="user-avatar-display-image"><?php echo user_avatar_get_avatar($profile->ID, 150); ?></p>
-	<a id="user-avatar-link" class="button-primary thickbox" href="<?php echo admin_url('admin-ajax.php'); ?>?action=user_avatar_add_photo&step=1&uid=<?php echo (int)$profile->ID; ?>&TB_iframe=true&width=720&height=450" title="<?php _e('Upload and Crop an Image to be Displayed','user-avatar'); ?>" ><?php _e('Update Picture','user-avatar'); ?></a>
+	<a id="user-avatar-link" class="button-primary thickbox" href="<?php echo admin_url('admin-ajax.php'); ?>?action=user_avatar_add_photo&step=1&uid=<?php echo absint( $profile->ID ); ?>&TB_iframe=true&width=720&height=450" title="<?php _e('Upload and Crop an Image to be Displayed','user-avatar'); ?>" ><?php _e('Update Picture','user-avatar'); ?></a>
 
 	<?php
 		// Remove the User-Avatar button if there is no uploaded image
 
 		if(isset($_GET['user_id'])):
-			$remove_url = admin_url('user-edit.php')."?user_id=".(int)$_GET['user_id']."&delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".(int)$profile->ID;
+			$remove_url = admin_url('user-edit.php?user_id='.$user_id.'&delete_avatar=true&_nononce='. wp_create_nonce('user_avatar').'&u='.absint( $profile->ID ));
 		else:
-			$remove_url = admin_url('profile.php')."?delete_avatar=true&_nononce=". wp_create_nonce('user_avatar')."&u=".(int)$profile->ID;
+			$remove_url = admin_url('profile.php?delete_avatar=true&_nononce='. wp_create_nonce('user_avatar').'&u='.absint( $profile->ID ));
 
 		endif;
 		if ( user_avatar_avatar_exists($profile->ID) ):?>
@@ -747,7 +757,7 @@ function user_avatar_get_avatar($id,$width) {
 
 		if( user_avatar_avatar_exists($id) ):
 
-			$user_avatar = user_avatar_fetch_avatar( array( 'item_id' => (int)$id, 'width' => esc_attr( $width ), 'height' => esc_attr( $width ), 'alt' => '' ) );
+			$user_avatar = user_avatar_fetch_avatar( array( 'item_id' => absint( $id ), 'width' => esc_attr( $width ), 'height' => esc_attr( $width ), 'alt' => '' ) );
 			if($user_avatar):
 				return $user_avatar;
 			else:

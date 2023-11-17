@@ -142,15 +142,17 @@ function user_avatar_core_avatar_url()
 function user_avatar_add_photo() {
 	global $current_user;
 
-	if(($_GET['uid'] == $current_user->ID || current_user_can('edit_users')) &&  is_numeric($_GET['uid']))
+	$uid  = absint( $_GET['uid'] );
+	$step = absint( $_GET['step'] );
+
+	if(($uid == $current_user->ID || current_user_can('edit_users')) &&  is_numeric($uid))
 	{
-		$uid = absint( $_GET['uid'] );
 		
 	?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" <?php do_action('admin_xml_ns'); ?> <?php language_attributes(); ?>>
 <head>
-<meta http-equiv="Content-Type" content="<?php bloginfo('html_type'); ?>; charset=<?php echo get_option('blog_charset'); ?>" />
-<title><?php bloginfo('name') ?> &rsaquo; <?php _e('Uploads'); ?> &#8212; <?php _e('WordPress'); ?></title>
+<meta http-equiv="Content-Type" content="<?php esc_attr( bloginfo('html_type') ); ?>; charset=<?php echo esc_attr( get_option('blog_charset') ); ?>" />
+<title><?php esc_textarea( bloginfo('name') ) ?> &rsaquo; <?php _e('Uploads'); ?> &#8212; <?php _e('WordPress'); ?></title>
 <script type="text/javascript">
 //<![CDATA[
 addLoadEvent = function(func){if(typeof jQuery!="undefined")jQuery(document).ready(func);else if(typeof wpOnload!='function'){wpOnload=func;}else{var oldonload=wpOnload;wpOnload=function(){oldonload();func();}}};
@@ -179,7 +181,7 @@ var userSettings = {
 </head>
 <body>
 <?php
-	$step = absint( $_GET['step'] );
+
 	switch($step)
 	{
 		case 1:
@@ -396,6 +398,7 @@ function user_avatar_add_photo_step3($uid)
 	$y1     = floatval( $_POST['y1'] );
 	$width  = floatval( $_POST['width'] );
 	$height = floatval( $_POST['height'] );
+	$uid    = intval( $uid );
 
 	if ( $oitar > 1 ) {
 		$x1 = $x1 * $oitar;
@@ -632,15 +635,15 @@ function user_avatar_delete(){
 		$current_user = wp_get_current_user();
 
 		$user_id = absint( $_GET['user_id'] );
+		$u       = absint( $_GET['u'] );
 
 		// If user clicks the remove avatar button, in URL deleter_avatar=true
-		if( isset($_GET['delete_avatar']) && wp_verify_nonce($_GET['_nononce'], 'user_avatar') && ( $_GET['u'] == $current_user->id || current_user_can('edit_users')) )
+		if( isset($_GET['delete_avatar']) && wp_verify_nonce($_GET['_nononce'], 'user_avatar') && ( $u == $current_user->id || current_user_can('edit_users')) )
 		{
-			$user_id = $_GET['user_id'];
 			if(is_numeric($user_id))
 				$user_id = "?user_id=".$user_id;
 
-			user_avatar_delete_files((int) $_GET['u']);
+			user_avatar_delete_files(absint( $u ));
 			wp_redirect(get_option('siteurl') . '/wp-admin/'. $pagenow. $user_id);
 
 		}

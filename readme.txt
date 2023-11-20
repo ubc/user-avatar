@@ -2,8 +2,8 @@
 Contributors: sgagan, enej, oltdev, ctlt-dev, ubcdev
 Tags: people lists, people, list, form, user profile, user avatar, thumbnail, upload photo, user, users, profile, biography, profile biography, user profile, description, profile description, rich text, wysiwyg, tinyMCE, photos, images,  members, directory, profiles, jQuery, sortable, tabbable, thickbox, overlay, media button, Your Profile
 Requires at least: 3.0
-Tested up to: 3.4.1
-Stable Tag: trunk
+Tested up to: 6.3.2
+Stable Tag: 1.4.12
 
 Provides a thumbnail area in Your Profile, for users to upload & crop new images in an overlay to be saved and stored to their profile.
 
@@ -36,6 +36,10 @@ also shouldn't be have problems using this plugin.
 
 
 == Changelog ==
+
+= 1.4.12 =
+* security vulnerability fix.
+
 = 1.4.11 =
 * added the Hungarian translation by feriman.
 
